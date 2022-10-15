@@ -59,44 +59,57 @@ const consultaEstudiantes = async (rut) => {
 };
 
 const consultaRut = async (rut) => {
+  const client = await pool.connect();
   try {
-    const resultado = await client.query(
-      `SELECT * FROM estudiantes WHERE rut = '${rut}'`
-    );
-    console.table(resultado.rows);
-    client.end();
-    return resultado.rows;
+    const consultaRut = {
+      name: "consulta_rut",
+      text: "SELECT * FROM estudiantes WHERE rut = $1",
+      values: [rut],
+    };
+    const respuesta = await client.query(consultaRut);
+    console.table(respuesta.rows);
+    return respuesta.rows;
   } catch (error) {
-    client.end();
     console.log(error.code);
+  } finally {
+    client.release();
   }
 };
 
 const actualizarEstudiante = async (rut, nombre, curso, nivel) => {
+  const client = await pool.connect();
   try {
-    const resultado = await client.query(
-      `UPDATE estudiantes SET nombre = '${nombre}', curso = '${curso}', nivel = '${nivel}' WHERE rut = '${rut}' RETURNING *`
-    );
-    console.log("Registros afectados: " + resultado.rowCount);
-    // console.log("Campos: ", resultado.fields);
-    console.table(resultado.rows);
+    const actualizarEstudiante = {
+      name: "acutalizar_estudiante",
+      text: "UPDATE estudiantes SET nombre = $2, curso = $3, nivel = $4 WHERE rut = $1 RETURNING *",
+      values: [rut, nombre, curso, nivel],
+    };
+    const respuesta = await client.query(actualizarEstudiante);
+    console.log("Registros afectados: " + respuesta.rowCount);
+    console.table(respuesta.rows);
   } catch (error) {
     console.log(error.code);
+  } finally {
+    client.release();
   }
-  client.end();
 };
 
 const eliminarEstudiante = async (rut) => {
+  const client = await pool.connect();
   try {
-    const resultado = await client.query(
-      `DELETE FROM estudiantes WHERE rut = '${rut}' RETURNING *`
-    );
-    console.log("Registros afectados: " + resultado.rowCount);
-    console.table(resultado.rows);
+    const eliminarEstudiante = {
+      name: "eliminar_estudiante",
+      text: "DELETE FROM estudiantes WHERE rut = $1 RETURNING *",
+      values: [rut],
+    };
+    const respuesta = await client.query(eliminarEstudiante);
+    console.log("Registros afectados: " + respuesta.rowCount);
+    console.table(respuesta.rows);
   } catch (error) {
     console.log(error.code);
+  } finally {
+    client.release();
   }
-  client.end();
 };
 
 // activacion de funciones
