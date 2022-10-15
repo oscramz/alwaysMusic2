@@ -34,6 +34,7 @@ nivel int
 )
 
 Actualización:
+
 - Se cambia el método de conexión a Pool, con desconexión a los 5 seg y tiempo de espera para nueva conexión de 2 seg.
 - Se parametrizan las consultas.
 - Se incorporó en las consultas un objeto JSON y un Prepared Statement.
