@@ -45,10 +45,11 @@ const consultaEstudiantes = async (rut) => {
       name: "consulta_general",
       text: "SELECT * FROM estudiantes order by $1",
       values: [rut],
+      rowMode: "array",
     };
 
     const respuesta = await client.query(consultaQuery);
-    console.table(resultado.rows);
+    console.log(respuesta.rows);
     return "Consulta realizada con éxito";
   } catch (error) {
     console.log(error.code);
