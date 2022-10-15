@@ -1,16 +1,15 @@
-const { Client } = require("pg");
+const { Pool } = require("pg");
 
-const config = {
+const pool = new Pool({
   user: "postgres",
   host: "localhost",
-  database: "always_music",
+  database: "alwaysMusic2.0",
   password: "postgre",
   port: 5432,
-};
-
-const client = new Client(config);
-
-client.connect();
+  max: 20,
+  idleTimeoutMillis: 5000,
+  connectionTimeoutMillis: 2000,
+});
 
 let argumentos = process.argv.slice(2);
 let funcion = argumentos[0];
@@ -20,31 +19,41 @@ let curso1 = argumentos[3];
 let nivel1 = argumentos[4];
 
 const nuevoEstudiante = async (rut, nombre, curso, nivel) => {
+  const client = await pool.connect();
   try {
-    const respuesta = await client.query(
-      `INSERT INTO estudiantes(rut, nombre, curso, nivel) VALUES('${rut}', '${nombre}', '${curso}', '${nivel}') RETURNING *`
-    );
+    const nuevoQuery = {
+      name: "nuevo_ingreso",
+      text: "INSERT INTO estudiantes(rut, nombre, curso, nivel) VALUES($1, $2, $3, $4) RETURNING *",
+      values: [rut, nombre, curso, nivel],
+    };
+
+    const respuesta = await client.query(nuevoQuery);
     console.log("Registros afectados: " + respuesta.rowCount);
     console.table(respuesta.rows);
-    client.end();
     return "Registro insertado con éxito con id: " + respuesta.rows[0].id;
   } catch (error) {
-    client.end();
     console.log(error);
+  } finally {
+    client.release();
   }
 };
 
-const consultaEstudiantes = async () => {
+const consultaEstudiantes = async (rut) => {
+  const client = await pool.connect();
   try {
-    const resultado = await client.query(
-      "SELECT * FROM estudiantes order by rut"
-    );
+    const consultaQuery = {
+      name: "consulta_general",
+      text: "SELECT * FROM estudiantes order by $1",
+      values: [rut],
+    };
+
+    const respuesta = await client.query(consultaQuery);
     console.table(resultado.rows);
-    client.end();
-    return resultado.rows;
+    return "Consulta realizada con éxito";
   } catch (error) {
-    client.end();
     console.log(error.code);
+  } finally {
+    client.release();
   }
 };
 
